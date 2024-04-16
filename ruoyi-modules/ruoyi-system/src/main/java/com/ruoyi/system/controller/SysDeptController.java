@@ -87,6 +87,8 @@ public class SysDeptController extends BaseController
     {
         List<SysDept> depts = deptService.selectDeptList(dept);
         return AjaxResult.success(deptService.buildDeptTreeSelect(depts));
+//        List<TreeSelect> depts = deptService.selectDeptTreeList(dept);
+//        return AjaxResult.success(depts);
     }
 
     /**

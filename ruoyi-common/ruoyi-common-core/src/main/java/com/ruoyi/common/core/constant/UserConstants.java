@@ -78,4 +78,14 @@ public class UserConstants
     public static final int PASSWORD_MIN_LENGTH = 5;
 
     public static final int PASSWORD_MAX_LENGTH = 20;
+
+    /**
+     * 产品分类状态
+     */
+
+    /** 部门正常状态 */
+    public static final String PRODUCT_CATEGORY_NORMAL = "0";
+
+    /** 部门停用状态 */
+    public static final String PRODUCT_CATEGORY_DISABLE = "1";
 }

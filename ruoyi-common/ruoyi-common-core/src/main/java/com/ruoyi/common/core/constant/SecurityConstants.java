@@ -41,4 +41,9 @@ public class SecurityConstants
      * 登录用户
      */
     public static final String LOGIN_USER = "login_user";
+
+    /**
+     * 菜单权限
+     */
+    public static final String FORM_AUTH = "sys.form.auth";
 }

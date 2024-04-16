@@ -2,11 +2,13 @@ package com.ruoyi.system.controller;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 
 import com.ruoyi.system.api.domain.SysDept;
+import com.ruoyi.system.domain.SysMenu;
 import com.ruoyi.system.service.*;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +63,10 @@ public class SysUserController extends BaseController
     private ISysConfigService configService;
 
     @Autowired
-    ISysDeptService deptService;
+    private ISysDeptService deptService;
+
+    @Autowired
+    private ISysMenuService menuService;
 
     /**
      * 获取用户列表
@@ -159,10 +164,13 @@ public class SysUserController extends BaseController
         Set<String> roles = permissionService.getRolePermission(userId);
         // 权限集合
         Set<String> permissions = permissionService.getMenuPermission(userId);
+        // 菜单权限合集
+        Map<String, String> column = menuService.selectMenuByUserId(userId);
         AjaxResult ajax = AjaxResult.success();
         ajax.put("user", userService.selectUserById(userId));
         ajax.put("roles", roles);
         ajax.put("permissions", permissions);
+        ajax.put("columns",column);
         return ajax;
     }
 
@@ -303,9 +311,9 @@ public class SysUserController extends BaseController
      */
     @RequiresPermissions("system:user:list")
     @GetMapping("/deptTree")
-    public Object deptTree(SysDept dept)
+    public AjaxResult deptTree(SysDept dept)
     {
-        return deptService.selectDeptTreeList(dept);
+        return AjaxResult.success(deptService.selectDeptTreeList(dept));
     }
 
     /**

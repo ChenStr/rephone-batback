@@ -1,6 +1,12 @@
 package com.ruoyi.system.controller;
 
+import java.io.IOException;
 import java.util.List;
+
+import com.alibaba.fastjson.JSON;
+import com.ruoyi.common.core.constant.SecurityConstants;
+import com.ruoyi.system.domain.vo.VOLibrary;
+import com.ruoyi.system.service.ISysConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -34,6 +40,9 @@ public class SysMenuController extends BaseController
     @Autowired
     private ISysMenuService menuService;
 
+    @Autowired
+    private ISysConfigService sysConfigService;
+
     /**
      * 获取菜单列表
      */
@@ -44,6 +53,15 @@ public class SysMenuController extends BaseController
         Long userId = SecurityUtils.getUserId();
         List<SysMenu> menus = menuService.selectMenuList(menu, userId);
         return AjaxResult.success(menus);
+    }
+
+    /**
+     * 获取菜单的列表权限
+     */
+    @RequiresPermissions("system:menu:list")
+    @GetMapping("/column")
+    public AjaxResult getMenuColum() {
+        return AjaxResult.success(JSON.parseObject(sysConfigService.selectConfigByKey(SecurityConstants.FORM_AUTH)));
     }
 
     /**

@@ -43,6 +43,14 @@ public interface SysMenuMapper
     public List<String> selectMenuPermsByUserId(Long userId);
 
     /**
+     * 根据用户ID查询权限
+     *
+     * @param userId 用户ID
+     * @return 菜单列表
+     */
+    public List<SysMenu> selectMenuByUserId(Long userId);
+
+    /**
      * 根据用户ID查询菜单
      * 
      * @return 菜单列表

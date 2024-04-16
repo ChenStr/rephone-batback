@@ -1,13 +1,14 @@
 package com.ruoyi.system.service.impl;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.io.IOException;
+import java.util.*;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.nacos.shaded.com.google.common.base.Joiner;
+import com.ruoyi.common.core.constant.SecurityConstants;
+import com.ruoyi.system.domain.vo.VOLibrary;
+import com.ruoyi.system.service.ISysConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.common.core.constant.Constants;
@@ -24,6 +25,8 @@ import com.ruoyi.system.mapper.SysMenuMapper;
 import com.ruoyi.system.mapper.SysRoleMapper;
 import com.ruoyi.system.mapper.SysRoleMenuMapper;
 import com.ruoyi.system.service.ISysMenuService;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * 菜单 业务层处理
@@ -43,6 +46,9 @@ public class SysMenuServiceImpl implements ISysMenuService
 
     @Autowired
     private SysRoleMenuMapper roleMenuMapper;
+
+    @Autowired
+    private ISysConfigService sysConfigService;
 
     /**
      * 根据用户查询系统菜单列表
@@ -98,6 +104,51 @@ public class SysMenuServiceImpl implements ISysMenuService
             }
         }
         return permsSet;
+    }
+
+    @Override
+    public Map<String,String> selectMenuByUserId(Long userId) {
+        Map<String,String> map = new HashMap<>();
+        List<SysMenu> sysMenus;
+        // 判断是不是管理员
+        if (SysUser.isAdmin(userId)) {
+            // 管理员读取配置文件中的内容，然后获取所有字段权限
+//            VOLibrary voLibrary = null;
+//            try {
+//                voLibrary = new VOLibrary();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//            JSONObject strMap = voLibrary.getBody();
+            JSONObject strMap = JSON.parseObject(sysConfigService.selectConfigByKey(SecurityConstants.FORM_AUTH));
+            Iterator iter = strMap.entrySet().iterator();
+            while (iter.hasNext()) {
+                Map.Entry entry = (Map.Entry) iter.next();
+                Map<String,String> map1 = (Map<String,String>)JSON.parse(entry.getValue().toString());
+                map.put(entry.getKey().toString(),String.join(",",map1.keySet()));
+            }
+        } else {
+            // 普通用户菜单表中的内容，根据菜单表中的内容获取字段
+            sysMenus = menuMapper.selectMenuByUserId(userId);
+            // 将用户的 perms 为 key 数据为值 SysMenu
+            for (SysMenu sysMenu : sysMenus) {
+                // 菜单权限key重复 而且 column都有值时
+                if (map.containsKey(sysMenu.getPerms()) && StringUtils.isNotBlank(sysMenu.getColumn())) {
+                    String sysMenu1 = map.get(sysMenu.getPerms());
+                    // 将两个 column 都拿出来
+                    List<String> sysColumn = Arrays.asList(sysMenu.getColumn() .split(","));
+                    if (StringUtils.isNotBlank(sysMenu1)) {
+                        List<String> column = Arrays.asList(sysMenu1 .split(","));
+                        sysColumn.addAll(column);
+                    }
+                    List<String> listAllDistinct = sysColumn.stream().distinct().collect(toList());
+                    map.put(sysMenu.getPerms(),Joiner.on(",").join(listAllDistinct));
+                } else if (!map.containsKey(sysMenu.getPerms())) {
+                    map.put(sysMenu.getPerms(),sysMenu.getColumn());
+                }
+            }
+        }
+        return map;
     }
 
     /**
@@ -234,7 +285,7 @@ public class SysMenuServiceImpl implements ISysMenuService
     public List<TreeSelect> buildMenuTreeSelect(List<SysMenu> menus)
     {
         List<SysMenu> menuTrees = buildMenuTree(menus);
-        return menuTrees.stream().map(TreeSelect::new).collect(Collectors.toList());
+        return menuTrees.stream().map(TreeSelect::new).collect(toList());
     }
 
     /**

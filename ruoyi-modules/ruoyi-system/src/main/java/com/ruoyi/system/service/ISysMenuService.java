@@ -1,6 +1,7 @@
 package com.ruoyi.system.service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import com.ruoyi.system.domain.SysMenu;
 import com.ruoyi.system.domain.vo.RouterVo;
@@ -37,6 +38,14 @@ public interface ISysMenuService
      * @return 权限列表
      */
     public Set<String> selectMenuPermsByUserId(Long userId);
+
+    /**
+     * 根据用户ID查询权限详细信息
+     *
+     * @param userId 用户ID
+     * @return 权限列表
+     */
+    public Map<String,String> selectMenuByUserId(Long userId);
 
     /**
      * 根据用户ID查询菜单树信息

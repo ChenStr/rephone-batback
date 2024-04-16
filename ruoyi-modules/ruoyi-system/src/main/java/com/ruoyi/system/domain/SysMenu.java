@@ -63,6 +63,9 @@ public class SysMenu extends BaseEntity
     /** 菜单图标 */
     private String icon;
 
+    /** 列表字段权限 */
+    private String column;
+
     /** 子菜单 */
     private List<SysMenu> children = new ArrayList<SysMenu>();
 
@@ -200,6 +203,16 @@ public class SysMenu extends BaseEntity
     public void setStatus(String status)
     {
         this.status = status;
+    }
+
+    public String getColumn()
+    {
+        return column;
+    }
+
+    public void setColumn(String column)
+    {
+        this.column = column;
     }
 
     @Size(min = 0, max = 100, message = "权限标识长度不能超过100个字符")
