@@ -34,6 +34,18 @@ public class LocalSysFileServiceImpl implements ISysFileService
     private String localFilePath;
 
     /**
+     * 产品图片地址
+     */
+    @Value("${file.productPath}")
+    private String productLocalFilePath;
+
+    /**
+     * 产品图片映射前缀
+     */
+    @Value("${file.productPrefix}")
+    public String productFilePrefix;
+
+    /**
      * 本地文件上传接口
      * 
      * @param file 上传的文件
@@ -45,6 +57,19 @@ public class LocalSysFileServiceImpl implements ISysFileService
     {
         String name = FileUploadUtils.upload(localFilePath, file);
         String url = domain + localFilePrefix + name;
+        return url;
+    }
+
+    /**
+     * 产品上传文件
+     * @param file 上传的文件
+     * @return
+     * @throws Exception
+     */
+    @Override
+    public String productUploadFile(MultipartFile file) throws Exception {
+        String name = FileUploadUtils.upload(productLocalFilePath, file);
+        String url = domain + productFilePrefix + name;
         return url;
     }
 }

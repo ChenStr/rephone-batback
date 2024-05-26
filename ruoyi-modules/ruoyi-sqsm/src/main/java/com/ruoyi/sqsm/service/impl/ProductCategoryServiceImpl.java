@@ -107,7 +107,7 @@ public class ProductCategoryServiceImpl extends ServiceImpl<ProductCategoryMappe
     public Boolean insertProductCategory(ProductCategory category) {
         ProductCategory info = this.getById(category.getParentsId());
         // 如果父节点不为正常状态,则不允许新增子节点
-        if (!UserConstants.PRODUCT_CATEGORY_NORMAL.equals(info.getStatus()))
+        if (!UserConstants.NORMAL.equals(info.getStatus()))
         {
             throw new ServiceException("父级分类被异常，不允许新增");
         }
@@ -132,7 +132,7 @@ public class ProductCategoryServiceImpl extends ServiceImpl<ProductCategoryMappe
         // 设置更新人与更新时间
         category = updateOrInsertRead(category,false);
         Boolean result = this.update(getUpdate(category));
-        if (UserConstants.PRODUCT_CATEGORY_NORMAL.equals(category.getStatus()) && StringUtils.isNotEmpty(category.getAncestors())
+        if (UserConstants.NORMAL.equals(category.getStatus()) && StringUtils.isNotEmpty(category.getAncestors())
                 && !StringUtils.equals("0", category.getAncestors()))
         {
             // 如果该分类是启用状态，则启用该分类的所有上级分类
@@ -145,8 +145,22 @@ public class ProductCategoryServiceImpl extends ServiceImpl<ProductCategoryMappe
     public Boolean deleteProductCategoryById(Long id) {
         LambdaUpdateWrapper<ProductCategory> queryWrapper = new LambdaUpdateWrapper<>();
         queryWrapper.eq(ProductCategory::getId,id)
-                    .set(ProductCategory::getStatus,UserConstants.PRODUCT_CATEGORY_DISABLE);
+                    .set(ProductCategory::getStatus,UserConstants.EXCEPTION);
         return this.update(queryWrapper);
+    }
+
+    @Override
+    public Boolean removeProductCategoryById(Long id) {
+        LambdaQueryWrapper<ProductCategory> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(ProductCategory::getId,id).eq(ProductCategory::getStatus,UserConstants.EXCEPTION);
+        ProductCategory productCategory = this.getOne(queryWrapper);
+        Integer nodeSum = hasChildByProductCategoryId(id);
+        // 之后还要加判断商品
+        if (Objects.equals(productCategory,null) || nodeSum>0) {
+            throw new ServiceException("不能删除因为其有子品类");
+        } else {
+            return this.removeById(id);
+        }
     }
 
     @Override
@@ -256,6 +270,9 @@ public class ProductCategoryServiceImpl extends ServiceImpl<ProductCategoryMappe
             updateWrapper.set(ProductCategory::getRemark,category.getRemark());
         }
         // 不可以为空的字段
+        if (list.contains("parents_id") && !Objects.equals(category.getParentsId(),null)) {
+            updateWrapper.set(ProductCategory::getParentsId,category.getParentsId());
+        }
         if (list.contains("name") && StringUtils.isNotBlank(category.getName())) {
             updateWrapper.set(ProductCategory::getName,category.getName());
         }
@@ -274,11 +291,11 @@ public class ProductCategoryServiceImpl extends ServiceImpl<ProductCategoryMappe
         if (list.contains("ancestors") && StringUtils.isNotBlank(category.getAncestors())) {
             updateWrapper.set(ProductCategory::getAncestors,category.getAncestors());
         }
-        if (list.contains("update_by") && StringUtils.isNotBlank(category.getCreateBy())) {
-            updateWrapper.set(ProductCategory::getCreateBy,category.getCreateBy());
+        if (list.contains("update_by") && StringUtils.isNotBlank(category.getUpdateBy())) {
+            updateWrapper.set(ProductCategory::getUpdateBy,category.getUpdateBy());
         }
-        if (list.contains("update_time") && Objects.equals(category.getCreateTime(),null)) {
-            updateWrapper.set(ProductCategory::getCreateBy,category.getCreateTime());
+        if (list.contains("update_time") && Objects.equals(category.getUpdateTime(),null)) {
+            updateWrapper.set(ProductCategory::getUpdateTime,category.getUpdateTime());
         }
         return updateWrapper;
     }

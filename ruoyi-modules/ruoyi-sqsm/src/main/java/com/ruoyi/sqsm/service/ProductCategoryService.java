@@ -86,12 +86,20 @@ public interface ProductCategoryService extends IService<ProductCategory> {
     public Boolean updateProductCategory(ProductCategory category);
 
     /**
-     * 删除产品品类管理信息
+     * 禁用产品品类管理信息
      *
-     * @param deptId 产品品类ID
+     * @param id 产品品类ID
      * @return 结果
      */
-    public Boolean deleteProductCategoryById(Long deptId);
+    public Boolean deleteProductCategoryById(Long id);
+
+    /**
+     * 删除产品品类管理信息
+     *
+     * @param id 产品品类ID
+     * @return 结果
+     */
+    public Boolean removeProductCategoryById(Long id);
 
     /**
      * 是否存在产品品类子节点

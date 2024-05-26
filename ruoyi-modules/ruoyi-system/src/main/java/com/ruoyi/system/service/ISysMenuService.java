@@ -45,7 +45,7 @@ public interface ISysMenuService
      * @param userId 用户ID
      * @return 权限列表
      */
-    public Map<String,String> selectMenuByUserId(Long userId);
+    public Map<String,Map<String,String>> selectMenuByUserId(Long userId);
 
     /**
      * 根据用户ID查询菜单树信息

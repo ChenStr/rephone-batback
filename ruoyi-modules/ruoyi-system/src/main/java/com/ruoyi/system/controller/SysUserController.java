@@ -165,7 +165,7 @@ public class SysUserController extends BaseController
         // 权限集合
         Set<String> permissions = permissionService.getMenuPermission(userId);
         // 菜单权限合集
-        Map<String, String> column = menuService.selectMenuByUserId(userId);
+        Map<String,Map<String,String>> column = menuService.selectMenuByUserId(userId);
         AjaxResult ajax = AjaxResult.success();
         ajax.put("user", userService.selectUserById(userId));
         ajax.put("roles", roles);

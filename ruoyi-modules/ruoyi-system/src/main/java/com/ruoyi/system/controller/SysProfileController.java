@@ -1,6 +1,7 @@
 package com.ruoyi.system.controller;
 
 import java.util.Arrays;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -69,6 +70,7 @@ public class SysProfileController extends BaseController
         LoginUser loginUser = SecurityUtils.getLoginUser();
         SysUser sysUser = loginUser.getSysUser();
         user.setUserName(sysUser.getUserName());
+        user.setUserId(sysUser.getUserId());
         if (StringUtils.isNotEmpty(user.getPhonenumber())
                 && UserConstants.NOT_UNIQUE.equals(userService.checkPhoneUnique(user)))
         {

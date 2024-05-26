@@ -4,7 +4,7 @@
 		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ruoyi.system.mapper.SysMenuMapper">
 
-	<resultMap type="SysMenu" id="SysMenuResult">
+	<resultMap type="com.ruoyi.system.domain.SysMenu" id="SysMenuResult">
 		<id     property="menuId"         column="menu_id"        />
 		<result property="menuName"       column="menu_name"      />
 		<result property="parentName"     column="parent_name"    />
@@ -28,12 +28,19 @@
 		<result property="remark"         column="remark"         />
 	</resultMap>
 
+	<resultMap type="com.ruoyi.system.domain.vo.DeptMenuVo" id="DeptMenuVo">
+		<result property="perms"          column="perms"      />
+		<result property="column"         column="column"     />
+		<result property="roleId"        column="role_id"    />
+		<result property="deptId"        column="dept_id"    />
+	</resultMap>
+
 	<sql id="selectMenuVo">
         select menu_id, menu_name, parent_id, order_num, path, component, `query`, is_frame, is_cache, menu_type, visible, status, ifnull(perms,'') as perms, icon, create_time,`column`
 		from sys_menu
     </sql>
     
-    <select id="selectMenuList" parameterType="SysMenu" resultMap="SysMenuResult">
+    <select id="selectMenuList" parameterType="com.ruoyi.system.domain.SysMenu" resultMap="SysMenuResult">
 		<include refid="selectMenuVo"/>
 		<where>
 			<if test="menuName != null and menuName != ''">
@@ -55,7 +62,7 @@
 		order by m.parent_id, m.order_num
 	</select>
 	
-	<select id="selectMenuListByUserId" parameterType="SysMenu" resultMap="SysMenuResult">
+	<select id="selectMenuListByUserId" parameterType="com.ruoyi.system.domain.SysMenu" resultMap="SysMenuResult">
 		select distinct m.menu_id, m.parent_id, m.menu_name, m.path, m.component, m.`query`, m.visible, m.status, ifnull(m.perms,'') as perms, m.is_frame, m.is_cache, m.menu_type, m.icon, m.order_num, m.create_time,m.column
 		from sys_menu m
 		left join sys_role_menu rm on m.menu_id = rm.menu_id
@@ -112,15 +119,6 @@
 		where m.status = '0' and r.status = '0' and ur.user_id = #{userId}
 	</select>
 
-	<select id="selectMenuByUserId" parameterType="Long" resultMap="SysMenuResult">
-		select m.perms,m.column,m.menu_id
-		from sys_menu m
-				 left join sys_role_menu rm on m.menu_id = rm.menu_id
-				 left join sys_user_role ur on rm.role_id = ur.role_id
-				 left join sys_role r on r.role_id = ur.role_id
-		where m.status = '0' and r.status = '0' and m.perms != '' and ur.user_id = #{userId}
-	</select>
-	
 	<select id="selectMenuById" parameterType="Long" resultMap="SysMenuResult">
 		<include refid="selectMenuVo"/>
 		where menu_id = #{menuId}
@@ -159,7 +157,7 @@
 		where menu_id = #{menuId}
 	</update>
 
-	<insert id="insertMenu" parameterType="SysMenu">
+	<insert id="insertMenu" parameterType="com.ruoyi.system.domain.SysMenu">
 		insert into sys_menu(
 		<if test="menuId != null and menuId != 0">menu_id,</if>
 		<if test="parentId != null and parentId != 0">parent_id,</if>
@@ -204,5 +202,17 @@
 	<delete id="deleteMenuById" parameterType="Long">
 	    delete from sys_menu where menu_id = #{menuId}
 	</delete>
+
+	<select id="selectDeptColumnByUserId" parameterType="Long" resultMap="DeptMenuVo">
+		select m.perms ,m.`column`,rm.role_id,ur.dept_id from sys_menu m
+			  left join sys_role_menu rm on rm.menu_id = m.menu_id
+			  left join sys_role r on rm.role_id = r.role_id
+			  left join (
+			SELECT ur.role_id,rd.dept_id from sys_user_role ur
+			left join sys_role_dept rd on rd.role_id = ur.role_id
+			WHERE ur.user_id = #{userId}
+		) ur on ur.role_id = rm.role_id
+		where m.perms != '' and m.status = '0' and r.status = '0'
+	</select>
 
 </mapper> 

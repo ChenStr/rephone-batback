@@ -39,4 +39,10 @@ public class FastDfsSysFileServiceImpl implements ISysFileService
                 FilenameUtils.getExtension(file.getOriginalFilename()), null);
         return domain + "/" + storePath.getFullPath();
     }
+
+    @Override
+    public String productUploadFile(MultipartFile file) throws Exception {
+        return null;
+    }
+
 }

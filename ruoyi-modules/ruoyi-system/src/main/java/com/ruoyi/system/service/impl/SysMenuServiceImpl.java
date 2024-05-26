@@ -7,8 +7,10 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.nacos.shaded.com.google.common.base.Joiner;
 import com.ruoyi.common.core.constant.SecurityConstants;
-import com.ruoyi.system.domain.vo.VOLibrary;
+import com.ruoyi.system.api.domain.SysDept;
+import com.ruoyi.system.domain.vo.*;
 import com.ruoyi.system.service.ISysConfigService;
+import com.ruoyi.system.service.ISysDeptService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.common.core.constant.Constants;
@@ -18,9 +20,6 @@ import com.ruoyi.common.security.utils.SecurityUtils;
 import com.ruoyi.system.api.domain.SysRole;
 import com.ruoyi.system.api.domain.SysUser;
 import com.ruoyi.system.domain.SysMenu;
-import com.ruoyi.system.domain.vo.MetaVo;
-import com.ruoyi.system.domain.vo.RouterVo;
-import com.ruoyi.system.domain.vo.TreeSelect;
 import com.ruoyi.system.mapper.SysMenuMapper;
 import com.ruoyi.system.mapper.SysRoleMapper;
 import com.ruoyi.system.mapper.SysRoleMenuMapper;
@@ -49,6 +48,9 @@ public class SysMenuServiceImpl implements ISysMenuService
 
     @Autowired
     private ISysConfigService sysConfigService;
+
+    @Autowired
+    private ISysDeptService sysDeptService;
 
     /**
      * 根据用户查询系统菜单列表
@@ -107,9 +109,9 @@ public class SysMenuServiceImpl implements ISysMenuService
     }
 
     @Override
-    public Map<String,String> selectMenuByUserId(Long userId) {
-        Map<String,String> map = new HashMap<>();
-        List<SysMenu> sysMenus;
+    public Map<String,Map<String,String>> selectMenuByUserId(Long userId) {
+        Map<String,Map<String,String>> map = new HashMap<>();
+//        List<SysMenu> sysMenus;
         // 判断是不是管理员
         if (SysUser.isAdmin(userId)) {
             // 管理员读取配置文件中的内容，然后获取所有字段权限
@@ -120,32 +122,49 @@ public class SysMenuServiceImpl implements ISysMenuService
 //                e.printStackTrace();
 //            }
 //            JSONObject strMap = voLibrary.getBody();
+            SysDept dept = new SysDept();
+            dept.setStatus(UserConstants.DEPT_NORMAL);
+            List<SysDept> sysDepts = sysDeptService.selectDeptList(dept);
             JSONObject strMap = JSON.parseObject(sysConfigService.selectConfigByKey(SecurityConstants.FORM_AUTH));
-            Iterator iter = strMap.entrySet().iterator();
-            while (iter.hasNext()) {
-                Map.Entry entry = (Map.Entry) iter.next();
-                Map<String,String> map1 = (Map<String,String>)JSON.parse(entry.getValue().toString());
-                map.put(entry.getKey().toString(),String.join(",",map1.keySet()));
+            for (SysDept dept1:sysDepts) {
+                Map<String,String> map1 = new HashMap<>();
+                Iterator iter = strMap.entrySet().iterator();
+                while (iter.hasNext()) {
+                    Map.Entry entry = (Map.Entry) iter.next();
+                    Map<String,String> map2 = (Map<String,String>)JSON.parse(entry.getValue().toString());
+                    map1.put(entry.getKey().toString(),String.join(",",map2.keySet()));
+                }
+                map.put(dept1.getDeptId().toString(),map1);
             }
-        } else {
+        }
+        else {
             // 普通用户菜单表中的内容，根据菜单表中的内容获取字段
-            sysMenus = menuMapper.selectMenuByUserId(userId);
+            List<DeptMenuVo> deptMenuVos = menuMapper.selectDeptColumnByUserId(userId);
+            // 收集用户角色所涉及到的所有部门
+            for (DeptMenuVo deptMenuVo:deptMenuVos) {
+                if (!map.containsKey(deptMenuVo.getDeptId())) {
+                    Map<String,String> map1 = new HashMap<>();
+                    map.put(deptMenuVo.getDeptId().toString(),map1);
+                }
+            }
             // 将用户的 perms 为 key 数据为值 SysMenu
-            for (SysMenu sysMenu : sysMenus) {
+            for (DeptMenuVo sysMenu : deptMenuVos) {
+                Map<String,String> map1 = map.get(sysMenu.getDeptId().toString());
                 // 菜单权限key重复 而且 column都有值时
-                if (map.containsKey(sysMenu.getPerms()) && StringUtils.isNotBlank(sysMenu.getColumn())) {
-                    String sysMenu1 = map.get(sysMenu.getPerms());
+                if (map1.containsKey(sysMenu.getPerms()) && StringUtils.isNotBlank(sysMenu.getColumn())) {
+                    String sysMenu1 = map1.get(sysMenu.getPerms());
                     // 将两个 column 都拿出来
-                    List<String> sysColumn = Arrays.asList(sysMenu.getColumn() .split(","));
+                    List<String> sysColumn = Arrays.asList(sysMenu.getColumn().split(","));
                     if (StringUtils.isNotBlank(sysMenu1)) {
-                        List<String> column = Arrays.asList(sysMenu1 .split(","));
-                        sysColumn.addAll(column);
+                        List<String> column = Arrays.asList(sysMenu1.split(","));
+                        sysColumn.retainAll(column);
                     }
                     List<String> listAllDistinct = sysColumn.stream().distinct().collect(toList());
-                    map.put(sysMenu.getPerms(),Joiner.on(",").join(listAllDistinct));
+                    map1.put(sysMenu.getPerms(),Joiner.on(",").join(listAllDistinct));
                 } else if (!map.containsKey(sysMenu.getPerms())) {
-                    map.put(sysMenu.getPerms(),sysMenu.getColumn());
+                    map1.put(sysMenu.getPerms(),sysMenu.getColumn());
                 }
+                map.put(sysMenu.getDeptId().toString(),map1);
             }
         }
         return map;

@@ -1,6 +1,8 @@
 package com.ruoyi.system.mapper;
 
 import java.util.List;
+
+import com.ruoyi.system.domain.vo.DeptMenuVo;
 import org.apache.ibatis.annotations.Param;
 import com.ruoyi.system.domain.SysMenu;
 
@@ -41,14 +43,6 @@ public interface SysMenuMapper
      * @return 权限列表
      */
     public List<String> selectMenuPermsByUserId(Long userId);
-
-    /**
-     * 根据用户ID查询权限
-     *
-     * @param userId 用户ID
-     * @return 菜单列表
-     */
-    public List<SysMenu> selectMenuByUserId(Long userId);
 
     /**
      * 根据用户ID查询菜单
@@ -122,4 +116,7 @@ public interface SysMenuMapper
      * @return 结果
      */
     public SysMenu checkMenuNameUnique(@Param("menuName") String menuName, @Param("parentId") Long parentId);
+
+
+    public List<DeptMenuVo> selectDeptColumnByUserId(Long userId);
 }

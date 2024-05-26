@@ -23,12 +23,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	<sql id="selectCateGoryVo">
 		select category.id, category.parents_id, category.name, category.code, category.sort, category.status,
 			   category.remark, category.cost, category.ancestors, category.create_by, category.create_time
-		from t_rehone_product_category category
+		from t_rephone_product_category category
 	</sql>
 
 
 	<update id="updateProductCategoryChildren" parameterType="java.util.List">
-		update t_rehone_product_category set ancestors =
+		update t_rephone_product_category set ancestors =
 		<foreach collection="categories" item="item" index="index"
 				 separator=" " open="case id" close="end">
 			when #{item.id} then #{item.ancestors}
@@ -41,18 +41,18 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	</update>
 
 	<select id="selectChildrenProductCategoryById" parameterType="Long" resultMap="ProductCategoryResult">
-		select * from t_rehone_product_category where find_in_set(#{id}, ancestors)
+		select * from t_rephone_product_category where find_in_set(#{id}, ancestors)
 	</select>
 
 	<update id="updateProductCategoryStatusNormal" parameterType="Long">
-		update t_rehone_product_category set status = '0' where id in
+		update t_rephone_product_category set status = '0' where id in
 		<foreach collection="array" item="id" open="(" separator="," close=")">
 			#{id}
 		</foreach>
 	</update>
 
 	<select id="hasChildByProductCategoryId" parameterType="Long" resultType="int">
-		select count(1) from t_rehone_product_category
+		select count(1) from t_rephone_product_category
 		where status = '0' and parents_id = #{id}
 	</select>
 

@@ -45,4 +45,26 @@ public class SysFileController
             return R.fail(e.getMessage());
         }
     }
+
+    /**
+     * 文件上传请求
+     */
+    @PostMapping("productUpload")
+    public R<SysFile> productUpload(MultipartFile file)
+    {
+        try
+        {
+            // 上传并返回访问地址
+            String url = sysFileService.productUploadFile(file);
+            SysFile sysFile = new SysFile();
+            sysFile.setName(FileUtils.getName(url));
+            sysFile.setUrl(url);
+            return R.ok(sysFile);
+        }
+        catch (Exception e)
+        {
+            log.error("上传文件失败", e);
+            return R.fail(e.getMessage());
+        }
+    }
 }

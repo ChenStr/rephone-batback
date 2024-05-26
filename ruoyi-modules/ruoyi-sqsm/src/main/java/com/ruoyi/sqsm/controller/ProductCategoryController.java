@@ -1,5 +1,6 @@
 package com.ruoyi.sqsm.controller;
 
+import com.ruoyi.common.core.constant.UserConstants;
 import com.ruoyi.common.core.utils.StringUtils;
 import com.ruoyi.common.core.utils.poi.ExcelUtil;
 import com.ruoyi.common.log.annotation.Log;
@@ -139,7 +140,7 @@ public class ProductCategoryController extends BaseController
     {
         if (categoryService.hasChildByProductCategoryId(id)>0)
         {
-            return AjaxResult.error("存在下级部门,不允许删除");
+            return AjaxResult.error("存在下级品类,不允许删除");
         }
 //        if (categoryService.checkDeptExistProduct(deptId))
 //        {
